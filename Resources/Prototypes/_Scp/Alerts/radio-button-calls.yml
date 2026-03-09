@@ -1,0 +1,92 @@
+﻿- type: entity
+  parent: SignalButton
+  id: BaseRadioCallButton
+  abstract: true
+  name: radio call button
+  description: A simple and convenient button for calling assistance.
+  components:
+  - type: WallMount
+    arc: 175
+  - type: Construction
+    graph: SignalButtonDirectionalGraph
+    node: SignalButtonDirectionalNode
+
+- type: entity
+  parent: BaseRadioCallButton
+  id: CallButtonMedicalService
+  name: medical service call button
+  description: A simple and convenient button for calling medical service assistance.
+  components:
+    - type: RadioCallButton
+      radioChannel: MedicalService
+      messageKey: scp-medical-service-call
+
+- type: entity
+  parent: BaseRadioCallButton
+  id: CallButtonScientificService
+  name: scientific service call button
+  description: A simple and convenient button for calling scientific service assistance.
+  components:
+  - type: RadioCallButton
+    radioChannel: ScientificService
+    messageKey: scp-scientific-service-call
+
+- type: entity
+  parent: BaseRadioCallButton
+  id: CallButtonEngineeringTechnicalService
+  name: engineering technical service call button
+  description: A simple and convenient button for calling engineering technical service assistance.
+  components:
+  - type: RadioCallButton
+    radioChannel: EngineeringTechnicalService
+    messageKey: scp-engineering-technical-service-call
+
+- type: entity
+  parent: BaseRadioCallButton
+  id: CallButtonHeavyContainmentSecurityService
+  name: heavy containment security service call button
+  description: A simple and convenient button for calling heavy containment security service assistance.
+  components:
+  - type: RadioCallButton
+    radioChannel: HeavyContainmentSecurityService
+    messageKey: scp-heavy-containment-security-service-call
+
+- type: entity
+  parent: BaseRadioCallButton
+  id: CallButtonFoodAndSanitationService
+  name: food and sanitation service call button
+  description: A simple and convenient button for calling food and sanitation service assistance.
+  components:
+  - type: RadioCallButton
+    radioChannel: FoodAndSanitationService
+    messageKey: scp-food-and-sanitation-service-call
+
+- type: entity
+  parent: BaseRadioCallButton
+  id: CallButtonLogisticsService
+  name: logistics service call button
+  description: A simple and convenient button for calling logistics service assistance.
+  components:
+  - type: RadioCallButton
+    radioChannel: LogisticsService
+    messageKey: scp-logistics-service-call
+
+- type: entity
+  parent: BaseRadioCallButton
+  id: CallButtonExternalAdministrativeZoneSecurityService
+  name: external administrative zone security service call button
+  description: A simple and convenient button for calling external administrative zone security service assistance.
+  components:
+  - type: RadioCallButton
+    radioChannel: ExternalAdministrativeZoneSecurityService
+    messageKey: scp-external-administrative-zone-security-service-call
+
+- type: entity
+  parent: BaseRadioCallButton
+  id: CallButtonEthicsCommittee
+  name: ethics committee call button
+  description: A simple and convenient button for calling ethics committee assistance.
+  components:
+  - type: RadioCallButton
+    radioChannel: EthicsCommittee
+    messageKey: scp-ethics-committee-call
