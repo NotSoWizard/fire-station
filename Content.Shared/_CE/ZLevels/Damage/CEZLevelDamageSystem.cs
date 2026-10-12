@@ -40,13 +40,14 @@ public sealed partial class CEZLevelDamageSystem : EntitySystem
     {
         base.Initialize();
 
+        SubscribeLocalEvent<PhysicsComponent, CEZLevelHitEvent>(OnFallDamage);
+
         _config.OnValueChanged(CCVars.CEBaseFallingDamage, i => BaseFallingDamage = i, true);
         _config.OnValueChanged(CCVars.CEBaseFallingOtherDamage, i => BaseFallingOtherDamage = i, true);
         _config.OnValueChanged(CCVars.CEBaseFallingStunTime, i => BaseFallingStunTime = i, true);
         _config.OnValueChanged(CCVars.CEBaseFallingOtherStunTime, i => BaseFallingOtherStunTime = i, true);
     }
 
-    [SubscribeLocalEvent]
     private void OnFallDamage(Entity<PhysicsComponent> ent, ref CEZLevelHitEvent args)
     {
         if (!_proto.Resolve(PhysicalDamageType, out var damageType))

@@ -22,6 +22,7 @@ using Robust.Shared.Map.Components;
 using Robust.Shared.Network;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Systems;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Serialization;
 
@@ -39,6 +40,8 @@ public sealed partial class CEZLevelToolTileSystem : EntitySystem
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private ISharedAdminLogManager _adminLogger = default!;
     [Dependency] private ITileDefinitionManager _tileDefManager = default!;
+    [Dependency] private IMapManager _mapManager = default!;
+    [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private CESharedZLevelsSystem _zLevel = default!;
     [Dependency] private SharedInteractionSystem _interaction = default!;
     [Dependency] private SharedMapSystem _map = default!;
@@ -49,7 +52,14 @@ public sealed partial class CEZLevelToolTileSystem : EntitySystem
     [Dependency] private TileSystem _tiles = default!;
     [Dependency] private TurfSystem _turfs = default!;
 
-    [SubscribeLocalEvent(before: new[] { typeof(SharedToolSystem) })]
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<CEZLevelToolTileComponent, AfterInteractEvent>(OnAfterInteract, before: new[] { typeof(SharedToolSystem) });
+        SubscribeLocalEvent<CEZLevelToolTileComponent, CEZLevelTileToolDoAfterEvent>(OnToolTileComplete);
+    }
+
     private void OnAfterInteract(Entity<CEZLevelToolTileComponent> ent, ref AfterInteractEvent args)
     {
         if (args.Handled || args.Target != null && !HasComp<PuddleComponent>(args.Target))
@@ -74,20 +84,21 @@ public sealed partial class CEZLevelToolTileSystem : EntitySystem
             return;
 
         var worldPos = _transform.ToMapCoordinates(clickLocation).Position;
-        if (!_map.TryFindGridAt(aboveMap.Owner, worldPos, out var gridUid, out var grid))
+        if (!_mapManager.TryFindGridAt(aboveMap.Owner, worldPos, out var gridUid, out var grid))
             return;
 
         var tileIndices = _map.WorldToTile(gridUid, grid, worldPos);
         var tileRef = _map.GetTileRef(gridUid, grid, tileIndices);
         var tileDef = (ContentTileDefinition)_tileDefManager[tileRef.Tile.TypeId];
 
-        if (!tool.Qualities.Overlaps(tileDef.DeconstructTools))
+        var qualities = tool.Qualities;
+        if (!qualities.ContainsAny(tileDef.DeconstructTools))
         {
             // Telegraph which tool is required, same as ToolTileCompatibleComponent's floor variant.
             var toolNames = new List<string>();
             foreach (var toolQuality in tileDef.DeconstructTools)
             {
-                if (ProtoMan.TryIndex<ToolQualityPrototype>(toolQuality, out var protoToolQuality))
+                if (_proto.TryIndex<ToolQualityPrototype>(toolQuality, out var protoToolQuality))
                     toolNames.Add(Loc.GetString(protoToolQuality.ToolName));
             }
 
@@ -120,7 +131,6 @@ public sealed partial class CEZLevelToolTileSystem : EntitySystem
         _tool.UseTool(ent, user, ent, tileComp.Delay, tool.Qualities, doAfterArgs, out _, toolComponent: tool);
     }
 
-    [SubscribeLocalEvent]
     private void OnToolTileComplete(Entity<CEZLevelToolTileComponent> ent, ref CEZLevelTileToolDoAfterEvent args)
     {
         if (args.Handled || args.Cancelled)
@@ -142,7 +152,8 @@ public sealed partial class CEZLevelToolTileSystem : EntitySystem
             return;
 
         var tileDef = (ContentTileDefinition)_tileDefManager[tileRef.Tile.TypeId];
-        if (!tool.Qualities.Overlaps(tileDef.DeconstructTools))
+        var qualities = tool.Qualities;
+        if (!qualities.ContainsAny(tileDef.DeconstructTools))
             return;
 
         // don't do this on the client or else the tile entity spawn mispredicts and looks horrible
@@ -185,7 +196,7 @@ public sealed partial class CEZLevelToolTileSystem : EntitySystem
         }
 
         var worldPos = _map.GridTileToWorldPos(gridUid, grid, tile);
-        if (!_map.TryFindGridAt(belowMap.Owner, worldPos, out var belowGridUid, out var belowGrid))
+        if (!_mapManager.TryFindGridAt(belowMap.Owner, worldPos, out var belowGridUid, out var belowGrid))
             return; // nothing below to fall onto — the item is simply lost
 
         var belowTile = _map.WorldToTile(belowGridUid, belowGrid, worldPos);

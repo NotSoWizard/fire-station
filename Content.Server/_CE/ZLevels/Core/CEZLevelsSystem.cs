@@ -30,10 +30,13 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
     {
         base.Initialize();
 
+        SubscribeLocalEvent<CEZMapComponent, EntityTerminatingEvent>(OnZMapTerminating);
+        SubscribeLocalEvent<CEStationZLevelsComponent, StationPostInitEvent>(OnStationPostInit);
+        InitializeViewSubscriptions();
+
         InitView();
     }
 
-    [SubscribeLocalEvent]
     private void OnZMapTerminating(Entity<CEZMapComponent> ent, ref EntityTerminatingEvent args)
     {
         var networkUid = ent.Comp.NetworkUid;
@@ -46,7 +49,6 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
         TryRemoveMapsFromNetwork((networkUid, network), new[] { ent.Owner });
     }
 
-    [SubscribeLocalEvent]
     private void OnStationPostInit(Entity<CEStationZLevelsComponent> ent, ref StationPostInitEvent args)
     {
         if (ent.Comp.MapsAbove.Count == 0 && ent.Comp.MapsBelow.Count == 0)

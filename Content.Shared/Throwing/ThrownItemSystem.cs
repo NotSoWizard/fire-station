@@ -16,7 +16,7 @@ namespace Content.Shared.Throwing
     /// <summary>
     ///     Handles throwing landing and collisions.
     /// </summary>
-    public sealed class ThrownItemSystem : EntitySystem
+    public sealed partial class ThrownItemSystem : EntitySystem // Fire edit - зависимость от Z-уровней вынесена в отдельную часть
     {
         [Dependency] private readonly IGameTiming _gameTiming = default!;
         [Dependency] private readonly INetManager _netMan = default!;

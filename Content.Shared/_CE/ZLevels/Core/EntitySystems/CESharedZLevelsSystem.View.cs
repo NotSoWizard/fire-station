@@ -15,9 +15,13 @@ namespace Content.Shared._CE.ZLevels.Core.EntitySystems;
 
 public abstract partial class CESharedZLevelsSystem
 {
+    private void InitializeViewSubscriptions()
+    {
+        SubscribeLocalEvent<CEZLevelViewerComponent, ToggleActionEvent>(OnToggleLookUp);
+    }
+
     [Dependency] protected ITileDefinitionManager TilDefMan = null!;
 
-    [SubscribeLocalEvent]
     private void OnToggleLookUp(Entity<CEZLevelViewerComponent> entity, ref ToggleActionEvent args)
     {
         if (args.Handled)
@@ -55,7 +59,7 @@ public abstract partial class CESharedZLevelsSystem
         {
             // No grid or no chunk at this position means there's simply nothing there (open space),
             // not an opaque roof, so it shouldn't block sight upward. Mirrors HasOpaqueAbove below.
-            if (_map.TryFindGridAt(checkingMap, worldPos, out var gridUid, out var grid) &&
+            if (_mapManager.TryFindGridAt(checkingMap, worldPos, out var gridUid, out var grid) &&
                 _map.TryGetTileRef(gridUid, grid, worldPos, out var tileRef))
             {
                 var tileDef = (ContentTileDefinition)TilDefMan[tileRef.Tile.TypeId];
@@ -81,7 +85,7 @@ public abstract partial class CESharedZLevelsSystem
         if (!TryMapUp(currentMap, out var mapAboveUid))
             return false;
 
-        if (!_map.TryFindGridAt(mapAboveUid, worldPos, out var gridUid, out var grid))
+        if (!_mapManager.TryFindGridAt(mapAboveUid, worldPos, out var gridUid, out var grid))
             return false;
 
         if (!_map.TryGetTileRef(gridUid, grid, worldPos, out var tileRef))

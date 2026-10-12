@@ -22,15 +22,14 @@ namespace Content.Shared._CE.ZLevels.Core.EntitySystems;
 public abstract partial class CESharedZLevelsSystem : EntitySystem
 {
     [Dependency] private INetManager _net = null!;
-    [Dependency] private IGameTiming _timing = null!;
     [Dependency] private IConfigurationManager _config = null!;
+    [Dependency] private IMapManager _mapManager = default!;
 
     [Dependency] private SharedPhysicsSystem _physicsSystem = null!;
     [Dependency] private SharedTransformSystem _transform = null!;
     [Dependency] private SharedActionsSystem _actions = null!;
     [Dependency] private EntityLookupSystem _lookup = null!;
     [Dependency] private SharedMapSystem _map = null!;
-    [Dependency] private SharedPopupSystem _popup = null!;
 
     [Dependency] protected EntityQuery<CEZPhysicsComponent> ZPhysicsQuery = default!;
 
@@ -49,6 +48,10 @@ public abstract partial class CESharedZLevelsSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
+
+        InitializeActivationSubscriptions();
+        InitializeMovementSubscriptions();
+        InitializeViewSubscriptions();
 
         _config.OnValueChanged(CCVars.ZLevelsPhysicsClientSimulation, i => _clientSimulation = i, true);
         _config.OnValueChanged(CCVars.ZLevelsPhysicsTickRate, i => _fixedTimestep = TimeSpan.FromSeconds(1d / i), true);

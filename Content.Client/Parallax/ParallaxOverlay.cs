@@ -1,5 +1,6 @@
 using System.Numerics;
 using Content.Client.Parallax.Managers;
+using Content.Client.Viewport;
 using Content.Shared.CCVar;
 using Content.Shared.Parallax.Biomes;
 using Robust.Client.GameObjects;
@@ -12,7 +13,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Client.Parallax;
 
-public sealed class ParallaxOverlay : Overlay
+public sealed partial class ParallaxOverlay : Overlay // Fire edit - расширение для Z-levels
 {
     [Dependency] private readonly IEntityManager _entManager = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
@@ -44,7 +45,6 @@ public sealed class ParallaxOverlay : Overlay
             return !_zLevel.TryMapDown(args.MapUid, out _);
         //CrystallEdge end
 
-        return true;
     }
 
     protected override void Draw(in OverlayDrawArgs args)

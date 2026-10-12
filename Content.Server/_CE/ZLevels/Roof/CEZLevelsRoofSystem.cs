@@ -15,6 +15,9 @@ public sealed partial class CEZLevelsRoofSystem : CESharedZLevelsRoofSystem
     {
         base.Initialize();
 
+        InitializeGridsSubscriptions();
+        InitializeMapsSubscriptions();
+
         InitMaps();
         InitGrids();
     }

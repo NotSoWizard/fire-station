@@ -12,13 +12,19 @@ public sealed partial class CEPvsOverrideSystem : EntitySystem
 {
     [Dependency] private PvsOverrideSystem _pvs = default!;
 
-    [SubscribeLocalEvent]
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<CEPvsOverrideComponent, ComponentShutdown>(OnPvsShutdown);
+        SubscribeLocalEvent<CEPvsOverrideComponent, ComponentStartup>(OnPvsStartup);
+    }
+
     private void OnPvsShutdown(Entity<CEPvsOverrideComponent> ent, ref ComponentShutdown args)
     {
         _pvs.RemoveGlobalOverride(ent);
     }
 
-    [SubscribeLocalEvent]
     private void OnPvsStartup(Entity<CEPvsOverrideComponent> ent, ref ComponentStartup args)
     {
         _pvs.AddGlobalOverride(ent);

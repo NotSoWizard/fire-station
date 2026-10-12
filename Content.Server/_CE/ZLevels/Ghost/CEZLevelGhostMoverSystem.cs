@@ -13,14 +13,20 @@ public sealed partial class CEZLevelGhostMoverSystem : CESharedZLevelGhostMoverS
 {
     [Dependency] private SharedActionsSystem _actions = default!;
 
-    [SubscribeLocalEvent]
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<CEZLevelGhostMoverComponent, MapInitEvent>(OnMapInit);
+        SubscribeLocalEvent<CEZLevelGhostMoverComponent, ComponentRemove>(OnRemove);
+    }
+
     private void OnMapInit(Entity<CEZLevelGhostMoverComponent> ent, ref MapInitEvent args)
     {
         _actions.AddAction(ent, ref ent.Comp.ZLevelUpActionEntity, ent.Comp.UpActionProto);
         _actions.AddAction(ent, ref ent.Comp.ZLevelDownActionEntity, ent.Comp.DownActionProto);
     }
 
-    [SubscribeLocalEvent]
     private void OnRemove(Entity<CEZLevelGhostMoverComponent> ent, ref ComponentRemove args)
     {
         _actions.RemoveAction(ent.Comp.ZLevelUpActionEntity);

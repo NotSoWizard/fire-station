@@ -1,4 +1,4 @@
-﻿/*
+/*
  * This file is sublicensed under MIT License
  * https://github.com/space-wizards/space-station-14/blob/master/LICENSE.TXT
  */
@@ -105,13 +105,14 @@ public sealed class CEZLevelOpeningCache(int chunkSize = CEZLevelOpeningCache.De
         bool exactOpeningBounds,
         List<Entity<MapGridComponent>> gridScratch,
         SharedMapSystem map,
+        IMapManager mapManager,
         SharedTransformSystem transform,
         ITileDefinitionManager tileDefinition)
     {
         combinedOpeningBounds = default;
         gridScratch.Clear();
 
-        map.FindGridsIntersecting(mapId, worldAabb, ref gridScratch, approx: true, includeMap: true);
+        mapManager.FindGridsIntersecting(mapId, worldAabb, ref gridScratch, approx: true, includeMap: true);
         if (gridScratch.Count == 0)
             return false;
 
@@ -203,13 +204,14 @@ public sealed class CEZLevelOpeningCache(int chunkSize = CEZLevelOpeningCache.De
         List<(Vector2 Center, float Distance)> openings,
         List<Entity<MapGridComponent>> gridScratch,
         SharedMapSystem map,
+        IMapManager mapManager,
         SharedTransformSystem transform,
         ITileDefinitionManager tileDefinition,
         bool edgeOnly = true)
     {
         var searchBounds = Box2.CenteredAround(sourcePosition, new Vector2(searchRadius * 2f, searchRadius * 2f));
         gridScratch.Clear();
-        map.FindGridsIntersecting(mapId, searchBounds, ref gridScratch, approx: true, includeMap: true);
+        mapManager.FindGridsIntersecting(mapId, searchBounds, ref gridScratch, approx: true, includeMap: true);
 
         if (gridScratch.Count == 0)
             return;
@@ -289,6 +291,7 @@ public sealed class CEZLevelOpeningCache(int chunkSize = CEZLevelOpeningCache.De
         out Vector2 openingCenter,
         List<Entity<MapGridComponent>> gridScratch,
         SharedMapSystem map,
+        IMapManager mapManager,
         SharedTransformSystem transform,
         ITileDefinitionManager tileDefinition,
         bool edgeOnly = true)
@@ -297,7 +300,7 @@ public sealed class CEZLevelOpeningCache(int chunkSize = CEZLevelOpeningCache.De
 
         var searchBounds = Box2.CenteredAround(sourcePosition, new Vector2(searchRadius * 2f, searchRadius * 2f));
         gridScratch.Clear();
-        map.FindGridsIntersecting(mapId, searchBounds, ref gridScratch, approx: true, includeMap: true);
+        mapManager.FindGridsIntersecting(mapId, searchBounds, ref gridScratch, approx: true, includeMap: true);
 
         if (gridScratch.Count == 0)
             return false;

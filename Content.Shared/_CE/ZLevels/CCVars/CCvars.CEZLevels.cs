@@ -9,6 +9,12 @@ namespace Content.Shared.CCVar;
 
 public sealed partial class CCVars
 {
+    /// <summary>
+    /// Scales the vertical part of distances between connected Z-levels.
+    /// </summary>
+    public static readonly CVarDef<float> CEMurkZScale =
+        CVarDef.Create("ce.murk.z_scale", 5f, CVar.SERVER | CVar.REPLICATED);
+
     public static readonly CVarDef<float>
         CEBaseFallingDamage = CVarDef.Create("zlevels.ce_base_falling_damage", 0.75f, CVar.SERVER | CVar.REPLICATED);
 

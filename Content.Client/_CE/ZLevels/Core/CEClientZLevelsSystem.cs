@@ -29,11 +29,12 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
     public override void Initialize()
     {
         base.Initialize();
+        SubscribeLocalEvent<CEZPhysicsComponent, GetEyeOffsetEvent>(OnEyeOffset);
+        SubscribeLocalEvent<CEZPhysicsComponent, ComponentStartup>(OnStartup);
         _overlay.AddOverlay(new CEZLevelBlurOverlay());
         _overlay.AddOverlay(new CEZLevelFogOverlay());
     }
 
-    [SubscribeLocalEvent]
     private void OnEyeOffset(Entity<CEZPhysicsComponent> ent, ref GetEyeOffsetEvent args)
     {
         Angle rotation = _eye.CurrentEye.Rotation * -1;
@@ -54,7 +55,6 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
         return zPhys.LocalPosition;
     }
 
-    [SubscribeLocalEvent]
     private void OnStartup(Entity<CEZPhysicsComponent> ent, ref ComponentStartup args)
     {
         if (!TryComp<SpriteComponent>(ent, out var sprite))

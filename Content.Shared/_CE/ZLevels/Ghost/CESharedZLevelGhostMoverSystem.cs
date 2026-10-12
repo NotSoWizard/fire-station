@@ -13,7 +13,14 @@ public abstract partial class CESharedZLevelGhostMoverSystem : EntitySystem
 {
     [Dependency] private CESharedZLevelsSystem _zLevel = null!;
 
-    [SubscribeLocalEvent]
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<CEZLevelGhostMoverComponent, CEZLevelActionDown>(OnZLevelDown);
+        SubscribeLocalEvent<CEZLevelGhostMoverComponent, CEZLevelActionUp>(OnZLevelUp);
+    }
+
     private void OnZLevelDown(Entity<CEZLevelGhostMoverComponent> ent, ref CEZLevelActionDown args)
     {
         if (args.Handled)
@@ -22,7 +29,6 @@ public abstract partial class CESharedZLevelGhostMoverSystem : EntitySystem
         args.Handled = _zLevel.TryMoveDown(ent);
     }
 
-    [SubscribeLocalEvent]
     private void OnZLevelUp(Entity<CEZLevelGhostMoverComponent> ent, ref CEZLevelActionUp args)
     {
         if (args.Handled)

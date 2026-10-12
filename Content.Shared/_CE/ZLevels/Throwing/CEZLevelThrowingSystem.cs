@@ -18,14 +18,20 @@ namespace Content.Shared._CE.ZLevels.Throwing;
 public sealed partial class CEZLevelThrowingSystem : EntitySystem
 {
 
-    [SubscribeLocalEvent]
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<CEZPhysicsComponent, ThrownEvent>(OnThrown);
+        SubscribeLocalEvent<CEZPhysicsComponent, StopThrowEvent>(OnStopThrow);
+    }
+
     private void OnThrown(Entity<CEZPhysicsComponent> ent, ref ThrownEvent args)
     {
         ent.Comp.Disabled = true;
         DirtyField(ent, ent.Comp, nameof(CEZPhysicsComponent.Disabled));
     }
 
-    [SubscribeLocalEvent]
     private void OnStopThrow(Entity<CEZPhysicsComponent> ent, ref StopThrowEvent args)
     {
         ent.Comp.Disabled = false;

@@ -17,13 +17,19 @@ public sealed partial class CEZCollapseClientSystem : EntitySystem
 
     public Dictionary<NetEntity, Dictionary<Vector2i, int>>? Grids;
 
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeNetworkEvent<CEZCollapseOverlayToggledEvent>(OnOverlayToggled);
+        SubscribeNetworkEvent<CEZCollapseOverlaySnapshotEvent>(OnSnapshotUpdate);
+    }
+
     public override void Shutdown()
     {
         base.Shutdown();
         _overlayMan.RemoveOverlay<CEZCollapseDebugOverlay>();
     }
 
-    [SubscribeNetworkEvent]
     private void OnOverlayToggled(CEZCollapseOverlayToggledEvent ev)
     {
         if (ev.IsEnabled)
@@ -35,7 +41,6 @@ public sealed partial class CEZCollapseClientSystem : EntitySystem
         }
     }
 
-    [SubscribeNetworkEvent]
     private void OnSnapshotUpdate(CEZCollapseOverlaySnapshotEvent ev)
     {
         Grids ??= new Dictionary<NetEntity, Dictionary<Vector2i, int>>();

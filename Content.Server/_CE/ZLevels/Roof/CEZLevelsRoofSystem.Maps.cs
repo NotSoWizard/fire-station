@@ -14,11 +14,15 @@ namespace Content.Server._CE.ZLevels.Roof;
 
 public sealed partial class CEZLevelsRoofSystem
 {
+    private void InitializeMapsSubscriptions()
+    {
+        SubscribeLocalEvent<CEZLevelMapNetworkUpdatedEvent>(OnMapNetworkUpdated);
+    }
+
     private void InitMaps()
     {
     }
 
-    [SubscribeLocalEvent]
     private void OnMapNetworkUpdated(CEZLevelMapNetworkUpdatedEvent args)
     {
         if (!TryComp<CEZMapNetworkComponent>(args.Network, out var network))
@@ -51,7 +55,8 @@ public sealed partial class CEZLevelsRoofSystem
 
             while (enumerator.MoveNext(out var tileRef))
             {
-                Roof.SetRoof((map, mapGrid, roofComp), tileRef.Value.GridIndices, _roofMap.Contains(tileRef.Value.GridIndices));
+                var covered = _roofMap.Contains(tileRef.Value.GridIndices);
+                Roof.SetRoof((map, mapGrid, roofComp), tileRef.Value.GridIndices, covered, occludeWeather: covered);
 
                 var tileDef = (ContentTileDefinition)TilDefMan[tileRef.Value.Tile.TypeId];
 

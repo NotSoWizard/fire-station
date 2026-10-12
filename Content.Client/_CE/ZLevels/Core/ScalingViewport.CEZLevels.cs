@@ -21,6 +21,7 @@ public sealed partial class ScalingViewport
     [Dependency] private IEyeManager _eyeManager = default!;
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private ITileDefinitionManager _tile = default!;
+    [Dependency] private IMapManager _map = default!;
 
     private CEClientZLevelsSystem? _zLevels;
     private SharedMapSystem? _mapSystem;
@@ -51,7 +52,6 @@ public sealed partial class ScalingViewport
         };
 
         float minX = float.MaxValue, minY = float.MaxValue;
-        float maxX = float.MinValue, maxY = float.MinValue;
 
         foreach (var c in corners)
         {
@@ -59,24 +59,30 @@ public sealed partial class ScalingViewport
                 minX = c.X;
             if (c.Y < minY)
                 minY = c.Y;
-            if (c.X > maxX)
-                maxX = c.X;
-            if (c.Y > maxY)
-                maxY = c.Y;
         }
 
         var mapCoordsBottomLeft = new MapCoordinates(new Vector2(minX, minY), mapId);
-        var mapCoordsTopRight = new MapCoordinates(new Vector2(maxX, maxY), mapId);
 
-        if (_mapSystem is null || !_mapSystem.TryFindGridAt(mapUid, mapCoordsBottomLeft.Position, out var gridUid, out var grid))
+        if (_mapSystem is null || !_map.TryFindGridAt(mapUid, mapCoordsBottomLeft.Position, out var gridUid, out var grid))
             return true;
 
-        var tileBottomLeft = _mapSystem.TileIndicesFor(gridUid, grid, mapCoordsBottomLeft);
-        var tileTopRight = _mapSystem.TileIndicesFor(gridUid, grid, mapCoordsTopRight);
+        var minTileX = int.MaxValue;
+        var minTileY = int.MaxValue;
+        var maxTileX = int.MinValue;
+        var maxTileY = int.MinValue;
 
-        for (var x = tileBottomLeft.X - 1; x <= tileTopRight.X + 1; x++)
+        foreach (var corner in corners)
         {
-            for (var y = tileBottomLeft.Y - 1; y <= tileTopRight.Y + 1; y++)
+            var indices = _mapSystem.TileIndicesFor(gridUid, grid, new MapCoordinates(corner, mapId));
+            minTileX = Math.Min(minTileX, indices.X);
+            minTileY = Math.Min(minTileY, indices.Y);
+            maxTileX = Math.Max(maxTileX, indices.X);
+            maxTileY = Math.Max(maxTileY, indices.Y);
+        }
+
+        for (var x = minTileX - 1; x <= maxTileX + 1; x++)
+        {
+            for (var y = minTileY - 1; y <= maxTileY + 1; y++)
             {
                 var tile = _mapSystem.GetTileRef(gridUid, grid, new Vector2i(x, y));
                 var tileDef = (ContentTileDefinition)_tile[tile.Tile.TypeId];
@@ -93,6 +99,7 @@ public sealed partial class ScalingViewport
         if (_eye is null)
             return;
 
+        viewport.ClearColor = Color.Black;
         _fallbackEye = _eye;
 
         // Cache frequently accessed components/systems
@@ -104,16 +111,28 @@ public sealed partial class ScalingViewport
         _mapSystem ??= _entityManager.System<SharedMapSystem>();
 
         if (_player.LocalEntity is null)
+        {
+            viewport.Render();
             return;
+        }
 
         if (!_entityManager.TryGetComponent<CEZLevelViewerComponent>(_player.LocalEntity.Value, out var zLevelViewer))
+        {
+            viewport.Render();
             return;
+        }
 
         if (!_xformQuery.Value.TryComp(_player.LocalEntity, out var playerXform))
+        {
+            viewport.Render();
             return;
+        }
 
         if (playerXform.MapUid is null)
+        {
+            viewport.Render();
             return;
+        }
 
         var lookUp = 0;
         if (zLevelViewer.LookUp)

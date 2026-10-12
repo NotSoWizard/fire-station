@@ -59,11 +59,7 @@ public sealed partial class CEZLevelAudioSystem : EntitySystem
     /// </summary>
     private void ProcessStreamZAware(EntityUid entity, AudioComponent component, TransformComponent xform, MapCoordinates listener)
     {
-        if (!component.Started)
-        {
-            component.Started = true;
-            component.StartPlaying();
-        }
+        _audioSystem.EnsureStreamStarted((entity, component));
 
         // Global audio (e.g. map-wide ambience) keeps vanilla same-map behaviour.
         if (component.Global)
@@ -140,10 +136,10 @@ public sealed partial class CEZLevelAudioSystem : EntitySystem
         else
             component.Occlusion = GetCrossLevelOcclusion(levelOffset, worldPos, entityMapUid, listener.Position, listenerMapUid);
 
-        component.Position = worldPos;
-
+        var velocity = component.Velocity;
         if (_physicsQuery.TryGetComponent(parentUid, out var physicsComp))
-            component.Velocity = _physics.GetMapLinearVelocity(parentUid, physicsComp);
+            velocity = _physics.GetMapLinearVelocity(parentUid, physicsComp);
+        _audioSystem.SetStreamSpatialProperties((entity, component), worldPos, velocity);
     }
 
     /// <summary>

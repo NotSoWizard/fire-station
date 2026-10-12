@@ -34,10 +34,21 @@ public abstract partial class CESharedZFlightSystem : EntitySystem
     {
         base.Initialize();
 
+        InitializeControllableSubscriptions();
+        SubscribeLocalEvent<CEZFlyerComponent, CEZLevelChasmAttempt>(OnFlightChasmAttempt);
+        SubscribeLocalEvent<CEZFlyerComponent, IsWeightlessEvent>(CheckWeightless);
+        SubscribeLocalEvent<CEZFlyerComponent, DamageChangedEvent>(OnDamageDealt);
+        SubscribeLocalEvent<CEZFlyerComponent, MobStateChangedEvent>(OnMobStateChanged);
+        SubscribeLocalEvent<CEZFlyerComponent, KnockedDownEvent>(OnKnockDowned);
+        SubscribeLocalEvent<CEZFlyerComponent, StunnedEvent>(OnStunned);
+        SubscribeLocalEvent<CEZPhysicsComponent, CEFlightStartedEvent>(OnStartFlight);
+        SubscribeLocalEvent<CEZPhysicsComponent, CEFlightStoppedEvent>(OnStopFlight);
+        SubscribeLocalEvent<CEZFlyerComponent, CEGetZVelocityEvent>(OnGetZVelocity);
+        SubscribeLocalEvent<CEZFlyerComponent, CECheckGravityEvent>(OnGetGravity);
+
         ZPhyzQuery = GetEntityQuery<CEZPhysicsComponent>();
     }
 
-    [SubscribeLocalEvent]
     private void OnFlightChasmAttempt(Entity<CEZFlyerComponent> ent, ref CEZLevelChasmAttempt args)
     {
         if (!ent.Comp.Active || args.Cancelled)
@@ -54,7 +65,6 @@ public abstract partial class CESharedZFlightSystem : EntitySystem
             _zLevel.SetZVelocity((ent.Owner, zPhys), 0f);
     }
 
-    [SubscribeLocalEvent]
     private void CheckWeightless(Entity<CEZFlyerComponent> ent, ref IsWeightlessEvent args)
     {
         if (!ent.Comp.Active || args.Handled)
@@ -64,60 +74,40 @@ public abstract partial class CESharedZFlightSystem : EntitySystem
         args.Handled = true;
     }
 
-    [SubscribeLocalEvent]
-    private void OnDamageDealt(Entity<CEZFlyerComponent> ent, ref DamageDealtEvent args)
+    private void OnDamageDealt(Entity<CEZFlyerComponent> ent, ref DamageChangedEvent args)
     {
-        if (!args.InterruptsDoAfters)
-            return;
-
-        var damageIncreased = false;
-        foreach (var amount in args.Damage.DamageDict.Values)
-        {
-            if (amount <= 0)
-                continue;
-
-            damageIncreased = true;
-            break;
-        }
-
-        if (!damageIncreased)
+        if (!args.InterruptsDoAfters || !args.DamageIncreased)
             return;
 
         DeactivateFlight((ent, ent));
     }
 
-    [SubscribeLocalEvent]
     private void OnMobStateChanged(Entity<CEZFlyerComponent> ent, ref MobStateChangedEvent args)
     {
         DeactivateFlight((ent, ent));
     }
 
-    [SubscribeLocalEvent]
     private void OnKnockDowned(Entity<CEZFlyerComponent> ent, ref KnockedDownEvent args)
     {
         DeactivateFlight((ent, ent));
     }
 
-    [SubscribeLocalEvent]
     private void OnStunned(Entity<CEZFlyerComponent> ent, ref StunnedEvent args)
     {
         DeactivateFlight((ent, ent));
     }
 
-    [SubscribeLocalEvent]
     private void OnStartFlight(Entity<CEZPhysicsComponent> ent, ref CEFlightStartedEvent args)
     {
         SetTargetHeight(ent.Owner, ent.Comp.CurrentZLevel);
         StartFlightVisuals(ent.Owner);
     }
 
-    [SubscribeLocalEvent]
     private void OnStopFlight(Entity<CEZPhysicsComponent> ent, ref CEFlightStoppedEvent args)
     {
         StopFlightVisuals(ent.Owner);
     }
 
-    [SubscribeLocalEvent]
     private void OnGetZVelocity(Entity<CEZFlyerComponent> ent, ref CEGetZVelocityEvent args)
     {
         if (!ent.Comp.Active)
@@ -153,7 +143,6 @@ public abstract partial class CESharedZFlightSystem : EntitySystem
         args.VelocityDelta = velocityDelta;
     }
 
-    [SubscribeLocalEvent]
     private void OnGetGravity(Entity<CEZFlyerComponent> ent, ref CECheckGravityEvent args)
     {
         if (ent.Comp.Active)

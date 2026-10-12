@@ -12,7 +12,13 @@ public sealed partial class CEFallingDamageSystem : EntitySystem
 {
     [Dependency] private DamageableSystem _damageable = default!;
 
-    [SubscribeLocalEvent]
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<CEFallingDamageComponent, CEZFellOnMeEvent>(OnFallOnMe);
+    }
+
     private void OnFallOnMe(Entity<CEFallingDamageComponent> ent, ref CEZFellOnMeEvent args)
     {
         _damageable.TryChangeDamage(args.Fallen, ent.Comp.Damage * args.Speed);

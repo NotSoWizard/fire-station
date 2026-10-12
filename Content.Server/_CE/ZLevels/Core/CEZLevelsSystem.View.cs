@@ -19,10 +19,19 @@ namespace Content.Server._CE.ZLevels.Core;
 
 public sealed partial class CEZLevelsSystem
 {
+    private void InitializeViewSubscriptions()
+    {
+        SubscribeLocalEvent<CEZMapNetworkComponent, CEZLevelMapNetworkUpdatedEvent>(OnMapNetworkUpdated);
+        SubscribeLocalEvent<CEZLevelViewerComponent, MapInitEvent>(OnViewerInit);
+        SubscribeLocalEvent<CEZLevelViewerComponent, ComponentRemove>(OnCompRemove);
+        SubscribeLocalEvent<PlayerAttachedEvent>(OnPlayerAttached);
+        SubscribeLocalEvent<PlayerDetachedEvent>(OnPlayerDetached);
+        SubscribeLocalEvent<CEZLevelViewerComponent, MapUidChangedEvent>(OnViewerMapUidChanged);
+    }
+
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedActionsSystem _actions = default!;
     [Dependency] private ViewSubscriberSystem _viewSubscriber = default!;
-    [Dependency] private SharedPopupSystem _popup = default!;
 
     private readonly EntProtoId _zEyeProto = "CEZLevelEye";
 
@@ -37,7 +46,6 @@ public sealed partial class CEZLevelsSystem
     /// A viewer's eye stack is built from the maps surrounding it, so it goes stale the moment
     /// the network gains or loses a level. Rebuild it for everyone inside that network.
     /// </summary>
-    [SubscribeLocalEvent]
     private void OnMapNetworkUpdated(Entity<CEZMapNetworkComponent> ent, ref CEZLevelMapNetworkUpdatedEvent args)
     {
         var query = EntityQueryEnumerator<CEZLevelViewerComponent, TransformComponent>();
@@ -73,14 +81,12 @@ public sealed partial class CEZLevelsSystem
         }
     }
 
-    [SubscribeLocalEvent]
     private void OnViewerInit(Entity<CEZLevelViewerComponent> ent, ref MapInitEvent args)
     {
         _actions.AddAction(ent, ref ent.Comp.ActionEntity, ent.Comp.ActionId);
         _meta.AddFlag(ent, MetaDataFlags.ExtraTransformEvents);
     }
 
-    [SubscribeLocalEvent]
     private void OnCompRemove(Entity<CEZLevelViewerComponent> ent, ref ComponentRemove args)
     {
         _actions.RemoveAction(ent.Comp.ActionEntity);
@@ -92,20 +98,17 @@ public sealed partial class CEZLevelsSystem
         }
     }
 
-    [SubscribeLocalEvent]
     private void OnPlayerAttached(PlayerAttachedEvent ev)
     {
         var viewer = EnsureComp<CEZLevelViewerComponent>(ev.Entity);
         UpdateViewer((ev.Entity, viewer));
     }
 
-    [SubscribeLocalEvent]
     private void OnPlayerDetached(PlayerDetachedEvent ev)
     {
         RemComp<CEZLevelViewerComponent>(ev.Entity);
     }
 
-    [SubscribeLocalEvent]
     private void OnViewerMapUidChanged(Entity<CEZLevelViewerComponent> ent, ref MapUidChangedEvent args)
     {
         UpdateViewer(ent);

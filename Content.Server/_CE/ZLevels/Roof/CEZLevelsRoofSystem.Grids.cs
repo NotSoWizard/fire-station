@@ -15,20 +15,21 @@ namespace Content.Server._CE.ZLevels.Roof;
 
 public sealed partial class CEZLevelsRoofSystem
 {
-    [Dependency] private EntityQuery<CEZGridComponent> _zgridQuery = default!;
-    [Dependency] private EntityQuery<CEZGridNetworkComponent> _zGridNetworkQuery = default!;
+    private void InitializeGridsSubscriptions()
+    {
+        SubscribeLocalEvent<CEZGridNetworkComponent, CEZLevelGridNetworkUpdatedEvent>(OnZGridNetworkUpdate);
+        SubscribeLocalEvent<CEZGridComponent, MapInitEvent>(OnZGridMapInit);
+    }
 
     private void InitGrids()
     {
     }
 
-    [SubscribeLocalEvent]
     private void OnZGridNetworkUpdate(Entity<CEZGridNetworkComponent> ent, ref CEZLevelGridNetworkUpdatedEvent args)
     {
         RecalculateGridRoofs(ent);
     }
 
-    [SubscribeLocalEvent]
     private void OnZGridMapInit(Entity<CEZGridComponent> ent, ref MapInitEvent args)
     {
         EnsureComp<CEZLevelRoofComponent>(ent.Owner);
@@ -58,7 +59,8 @@ public sealed partial class CEZLevelsRoofSystem
 
                 Roof.SetRoof((gridUid, grid, roofComp),
                     tileRef.Value.GridIndices,
-                    _roofMap.Contains(worldTile));
+                    _roofMap.Contains(worldTile),
+                    occludeWeather: _roofMap.Contains(worldTile));
 
                 var tileDef = (ContentTileDefinition)TilDefMan[tileRef.Value.Tile.TypeId];
                 if (!tileDef.Transparent)

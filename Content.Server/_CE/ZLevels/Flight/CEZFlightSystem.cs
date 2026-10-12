@@ -14,7 +14,14 @@ public sealed partial class CEZFlightSystem : CESharedZFlightSystem
 {
     [Dependency] private ActionsSystem _actions = default!;
 
-    [SubscribeLocalEvent]
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<CEControllableFlightComponent, ComponentRemove>(OnRemove);
+        SubscribeLocalEvent<CEControllableFlightComponent, MapInitEvent>(OnMapInit);
+    }
+
     private void OnRemove(Entity<CEControllableFlightComponent> ent, ref ComponentRemove args)
     {
         _actions.RemoveAction(ent.Comp.ZLevelUpActionEntity);
@@ -22,7 +29,6 @@ public sealed partial class CEZFlightSystem : CESharedZFlightSystem
         _actions.RemoveAction(ent.Comp.ZLevelToggleActionEntity);
     }
 
-    [SubscribeLocalEvent]
     private void OnMapInit(Entity<CEControllableFlightComponent> ent, ref MapInitEvent args)
     {
         if (!ZPhyzQuery.TryComp(ent, out var zPhys))

@@ -21,7 +21,13 @@ public sealed partial class CEZLevelChasmSystem : EntitySystem
 
     private static readonly SoundPathSpecifier FallingSound = new("/Audio/Effects/falling.ogg");
 
-    [SubscribeLocalEvent]
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<CEZLevelChasmComponent, CEZLevelFallOutOfBoundsEvent>(OnFallOutOfBounds);
+    }
+
     private void OnFallOutOfBounds(Entity<CEZLevelChasmComponent> ent, ref CEZLevelFallOutOfBoundsEvent args)
     {
         var player = args.Player;

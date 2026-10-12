@@ -13,11 +13,20 @@ namespace Content.Shared._CE.ZLevels.Core.EntitySystems;
 
 public abstract partial class CESharedZLevelsSystem
 {
+    private void InitializeActivationSubscriptions()
+    {
+        SubscribeLocalEvent<CEZPhysicsComponent, MapInitEvent>(OnMapInit);
+        SubscribeLocalEvent<CEZPhysicsComponent, ComponentShutdown>(OnShutdown);
+        SubscribeLocalEvent<CEZPhysicsComponent, AnchorStateChangedEvent>(OnAnchorStateChanged);
+        SubscribeLocalEvent<CEZPhysicsComponent, PhysicsBodyTypeChangedEvent>(OnPhysicsBodyTypeChanged);
+        SubscribeLocalEvent<CEZPhysicsComponent, EntParentChangedMessage>(OnParentChanged);
+        SubscribeLocalEvent<CEZPhysicsComponent, AfterAutoHandleStateEvent>(OnAfterState);
+    }
+
     private readonly List<EntityUid> _activeBodies = new();
 
     public IReadOnlyList<EntityUid> ActiveBodies => _activeBodies;
 
-    [SubscribeLocalEvent]
     private void OnMapInit(Entity<CEZPhysicsComponent> entity, ref MapInitEvent args)
     {
         RefreshBody(entity);
@@ -34,25 +43,32 @@ public abstract partial class CESharedZLevelsSystem
         DirtyField(entity, entity.Comp, nameof(CEZPhysicsComponent.CurrentZLevel));
     }
 
-    [SubscribeLocalEvent]
     private void OnShutdown(Entity<CEZPhysicsComponent> entity, ref ComponentShutdown args)
     {
         SleepBody((entity, entity));
     }
 
-    [SubscribeLocalEvent]
+    private void OnAfterState(Entity<CEZPhysicsComponent> entity, ref AfterAutoHandleStateEvent args)
+    {
+        if (!_net.IsClient)
+            return;
+
+        // После отката сетевых полей локальные таймер и кеш пола могут относиться к предыдущему прогнозу.
+        entity.Comp.SleepTimer = 0f;
+        RequestCacheMovement(entity);
+        RefreshBody(entity);
+    }
+
     private void OnAnchorStateChanged(Entity<CEZPhysicsComponent> entity, ref AnchorStateChangedEvent args)
     {
         RefreshBody(entity);
     }
 
-    [SubscribeLocalEvent]
     private void OnPhysicsBodyTypeChanged(Entity<CEZPhysicsComponent> entity, ref PhysicsBodyTypeChangedEvent args)
     {
         RefreshBody(entity);
     }
 
-    [SubscribeLocalEvent]
     private void OnParentChanged(Entity<CEZPhysicsComponent> entity, ref EntParentChangedMessage args)
     {
         RefreshBody(entity);

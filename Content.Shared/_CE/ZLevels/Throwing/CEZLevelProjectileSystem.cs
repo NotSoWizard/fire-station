@@ -5,6 +5,7 @@
 
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared.Projectiles;
+using Content.Shared.Weapons.Ranged.Events;
 
 namespace Content.Shared._CE.ZLevels.Throwing;
 
@@ -16,14 +17,20 @@ namespace Content.Shared._CE.ZLevels.Throwing;
 /// </summary>
 public sealed partial class CEZLevelProjectileSystem : EntitySystem
 {
-    [SubscribeLocalEvent]
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<CEZPhysicsComponent, ProjectileShotEvent>(OnShot);
+        SubscribeLocalEvent<CEZPhysicsComponent, EmbedEvent>(OnEmbed);
+    }
+
     private void OnShot(Entity<CEZPhysicsComponent> ent, ref ProjectileShotEvent args)
     {
         ent.Comp.Disabled = true;
         DirtyField(ent, ent.Comp, nameof(CEZPhysicsComponent.Disabled));
     }
 
-    [SubscribeLocalEvent]
     private void OnEmbed(Entity<CEZPhysicsComponent> ent, ref EmbedEvent args)
     {
         ent.Comp.Disabled = false;

@@ -15,6 +15,13 @@ namespace Content.Shared._CE.ZLevels.Core.EntitySystems;
 
 public abstract partial class CESharedZLevelsSystem
 {
+    private void InitializeMovementSubscriptions()
+    {
+        SubscribeLocalEvent<TileChangedEvent>(OnTileChanged);
+        SubscribeLocalEvent<CEZPhysicsComponent, MoveEvent>(OnMoveEvent);
+        SubscribeLocalEvent<CEZPhysicsComponent, CEZLevelMapMoveEvent>(OnZLevelMapMove);
+    }
+
     private TimeSpan _accumulatedTime = TimeSpan.Zero;
     private readonly List<EntityUid> _dirtyMovementBodies = new();
 
@@ -32,9 +39,11 @@ public abstract partial class CESharedZLevelsSystem
         return target.Comp.LocalPosition - target.Comp.CachedGroundHeight;
     }
 
-    [SubscribeLocalEvent]
-    private void OnTileChanged(Entity<CEZMapComponent> ent, ref TileChangedEvent args)
+    private void OnTileChanged(ref TileChangedEvent args)
     {
+        if (!_transformQuery.TryComp(args.Entity, out var gridTransform) || !_zMapQuery.HasComp(gridTransform.MapUid))
+            return;
+
         if (!TryComp<MapGridComponent>(args.Entity, out var grid))
             return;
 
@@ -70,7 +79,6 @@ public abstract partial class CESharedZLevelsSystem
         entity.Comp.CachedStickyGround = sticky;
     }
 
-    [SubscribeLocalEvent]
     private void OnMoveEvent(Entity<CEZPhysicsComponent> entity, ref MoveEvent args)
     {
         if (_dirtyMovementBodies.Contains(entity))
@@ -79,7 +87,6 @@ public abstract partial class CESharedZLevelsSystem
         _dirtyMovementBodies.Add(entity);
     }
 
-    [SubscribeLocalEvent]
     private void OnZLevelMapMove(Entity<CEZPhysicsComponent> ent, ref CEZLevelMapMoveEvent args)
     {
         ent.Comp.CurrentZLevel = args.CurrentZLevel;
@@ -119,7 +126,7 @@ public abstract partial class CESharedZLevelsSystem
             }
 
             //Find whichever grid (structure or planet) provides the floor here.
-            if (!_map.TryFindGridAt(checkingMap, worldPos, out var gridUid, out var grid))
+            if (!_mapManager.TryFindGridAt(checkingMap, worldPos, out var gridUid, out var grid))
                 continue;
 
             var gridTile = _map.WorldToTile(gridUid, grid, worldPos);
@@ -198,7 +205,7 @@ public abstract partial class CESharedZLevelsSystem
             return false;
 
         var worldPos = _transform.GetWorldPosition(ent);
-        if (!_map.TryFindGridAt(mapAboveUid, worldPos, out var gridUid, out var grid))
+        if (!_mapManager.TryFindGridAt(mapAboveUid, worldPos, out var gridUid, out var grid))
             return false;
 
         if (_map.TryGetTileRef(gridUid, grid, worldPos, out var tileRef) &&
@@ -242,7 +249,7 @@ public abstract partial class CESharedZLevelsSystem
         if (!TryMapUp(currentMap, out var mapAboveUid))
             return false;
 
-        if (!_map.TryFindGridAt(mapAboveUid, worldPos, out var gridUid, out var grid))
+        if (!_mapManager.TryFindGridAt(mapAboveUid, worldPos, out var gridUid, out var grid))
             return false;
 
         return _map.TryGetTileRef(gridUid, grid, worldPos, out var tileRef) && !tileRef.Tile.IsEmpty;

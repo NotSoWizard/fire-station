@@ -9,7 +9,13 @@ namespace Content.Shared._CE.ZLevels.Damage.SafeFalling;
 public sealed partial class CESafeFallingSystem : EntitySystem
 {
 
-    [SubscribeLocalEvent]
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<CESafeFallingComponent, CEZFallingDamageCalculateEvent>(OnFallingDamageCalculate);
+    }
+
     private void OnFallingDamageCalculate(Entity<CESafeFallingComponent> ent, ref CEZFallingDamageCalculateEvent args)
     {
         if (args.Fallen == ent.Owner)

@@ -23,6 +23,7 @@ public sealed partial class CEZGridConnectorSystem : EntitySystem
     [Dependency] private CEZLevelsSystem _zLevels = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedMapSystem _mapSystem = default!;
+    [Dependency] private IMapManager _mapManager = default!;
 
     [Dependency] private EntityQuery<CEZGridComponent> _zgridQuery = default!;
     [Dependency] private EntityQuery<CEZGridNetworkComponent> _zgridNetworkQuery = default!;
@@ -46,6 +47,19 @@ public sealed partial class CEZGridConnectorSystem : EntitySystem
         return _setPool.Count > 0 ? _setPool.Pop() : new HashSet<EntityUid>();
     }
 
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<CEZGridConnectorComponent, MapInitEvent>(OnConnectorMapInit);
+        SubscribeLocalEvent<CEZGridConnectorComponent, AnchorStateChangedEvent>(OnConnectorAnchorChanged);
+        SubscribeLocalEvent<CEZGridConnectorComponent, EntityTerminatingEvent>(OnConnectorTerminating);
+        SubscribeLocalEvent<CEZGridComponent, EntityTerminatingEvent>(OnGridTerminating);
+        SubscribeLocalEvent<TileChangedEvent>(OnTileChanged);
+        SubscribeLocalEvent<GridSplitEvent>(OnGridSplit);
+        SubscribeLocalEvent<CEZGridNetworkComponent, ComponentShutdown>(OnGridNetworkShutdown);
+    }
+
     private void ReturnSet(HashSet<EntityUid> set)
     {
         set.Clear();
@@ -58,43 +72,36 @@ public sealed partial class CEZGridConnectorSystem : EntitySystem
         _dirty = true;
     }
 
-    [SubscribeLocalEvent]
     private void OnConnectorMapInit(Entity<CEZGridConnectorComponent> ent, ref MapInitEvent args)
     {
         _dirty = true;
     }
 
-    [SubscribeLocalEvent]
     private void OnConnectorAnchorChanged(Entity<CEZGridConnectorComponent> ent, ref AnchorStateChangedEvent args)
     {
         _dirty = true;
     }
 
-    [SubscribeLocalEvent]
     private void OnConnectorTerminating(Entity<CEZGridConnectorComponent> ent, ref EntityTerminatingEvent args)
     {
         _dirty = true;
     }
 
-    [SubscribeLocalEvent]
     private void OnGridTerminating(Entity<CEZGridComponent> ent, ref EntityTerminatingEvent args)
     {
         _dirty = true;
     }
 
-    [SubscribeLocalEvent]
     private void OnTileChanged(ref TileChangedEvent ev)
     {
         _dirty = true;
     }
 
-    [SubscribeLocalEvent]
     private void OnGridSplit(ref GridSplitEvent ev)
     {
         _dirty = true;
     }
 
-    [SubscribeLocalEvent]
     private void OnGridNetworkShutdown(Entity<CEZGridNetworkComponent> ent, ref ComponentShutdown args)
     {
         foreach (var grid in ent.Comp.Grids.ToList())
@@ -226,7 +233,7 @@ public sealed partial class CEZGridConnectorSystem : EntitySystem
                 continue;
 
             var worldPos = _transform.GetWorldPosition(connectorUid);
-            if (!_mapSystem.TryFindGridAt(aboveMap.Owner, worldPos, out var upperGridUid, out var upperGrid))
+            if (!_mapManager.TryFindGridAt(aboveMap.Owner, worldPos, out var upperGridUid, out var upperGrid))
                 continue;
             if (upperGridUid == lowerGridUid)
                 continue;

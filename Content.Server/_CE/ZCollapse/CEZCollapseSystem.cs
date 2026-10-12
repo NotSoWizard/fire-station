@@ -33,6 +33,7 @@ namespace Content.Server._CE.ZCollapse;
 public sealed partial class CEZCollapseSystem : EntitySystem
 {
     [Dependency] private SharedMapSystem _map = default!;
+    [Dependency] private IMapManager _mapManager = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private CESharedZLevelsSystem _zLevel = default!;
     [Dependency] private ITileDefinitionManager _tileDefMan = default!;
@@ -129,7 +130,14 @@ public sealed partial class CEZCollapseSystem : EntitySystem
         PushDirtySnapshots();
     }
 
-    [SubscribeLocalEvent]
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundCleanup);
+        InitializeEventsSubscriptions();
+    }
+
     private void OnRoundCleanup(RoundRestartCleanupEvent ev)
     {
         foreach (var (_, cts, _) in _inFlightJobs)
@@ -192,7 +200,7 @@ public sealed partial class CEZCollapseSystem : EntitySystem
         if (!_mapCompQuery.TryGetComponent(mapUid, out var mapComp))
             return false;
 
-        foreach (var grid in _map.GetAllGrids(mapComp.MapId))
+        foreach (var grid in _mapManager.GetAllGrids(mapComp.MapId))
         {
             if (_stabilityQuery.HasComponent(grid.Owner))
             {
@@ -281,7 +289,7 @@ public sealed partial class CEZCollapseSystem : EntitySystem
             if (!_mapCompQuery.TryGetComponent(mapUid, out var mapComp))
                 return false;
 
-            foreach (var candidate in _map.GetAllGrids(mapComp.MapId))
+            foreach (var candidate in _mapManager.GetAllGrids(mapComp.MapId))
             {
                 if (!participates(candidate.Owner))
                     continue;

@@ -32,7 +32,13 @@ public abstract partial class CESharedZLevelsRoofSystem : EntitySystem
     [Dependency] protected EntityQuery<CEZMapComponent> ZMapQuery = default!;
     [Dependency] protected EntityQuery<TransformComponent> XformQuery = default!;
 
-    [SubscribeLocalEvent]
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<CEZLevelRoofComponent, TileChangedEvent>(OnTileChanged);
+    }
+
     private void OnTileChanged(Entity<CEZLevelRoofComponent> ent, ref TileChangedEvent args)
     {
         if (!GridQuery.TryComp(ent, out var currentMapGrid))
@@ -80,7 +86,7 @@ public abstract partial class CESharedZLevelsRoofSystem : EntitySystem
 
             foreach (var (indices, rooved) in roofMap)
             {
-                Roof.SetRoof((mapBelow, mapGridBelow, roofBelow), indices, rooved);
+                Roof.SetRoof((mapBelow, mapGridBelow, roofBelow), indices, rooved, occludeWeather: rooved);
 
                 if (Map.TryGetTile(mapGridBelow, indices, out var tile) && !tile.IsEmpty)
                     roofMap[indices] = true;
@@ -130,7 +136,7 @@ public abstract partial class CESharedZLevelsRoofSystem : EntitySystem
                     continue; // nothing here on this level — neither marked nor able to re-shield below
 
                 var otherRoof = EnsureComp<RoofComponent>(otherGrid);
-                Roof.SetRoof((otherGrid, otherMapGrid, otherRoof), localTile, covered);
+                Roof.SetRoof((otherGrid, otherMapGrid, otherRoof), localTile, covered, occludeWeather: covered);
 
                 var otherTileDef = (ContentTileDefinition)TilDefMan[tileRef.Tile.TypeId];
                 if (!otherTileDef.Transparent)

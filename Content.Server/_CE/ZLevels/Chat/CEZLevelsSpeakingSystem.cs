@@ -34,10 +34,11 @@ public sealed partial class CEZLevelsSpeakingSystem : EntitySystem
     {
         base.Initialize();
 
+        SubscribeLocalEvent<CEZLevelViewerComponent, EntitySpokeEvent>(OnSpoke);
+
         _mapQuery = GetEntityQuery<MapComponent>();
     }
 
-    [SubscribeLocalEvent]
     private void OnSpoke(Entity<CEZLevelViewerComponent> ent, ref EntitySpokeEvent args)
     {
         if (args.ObfuscatedMessage is not null) //Curse of chatcode: this is only way detect whispers

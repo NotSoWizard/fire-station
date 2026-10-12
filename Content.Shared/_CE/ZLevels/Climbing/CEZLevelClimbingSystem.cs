@@ -18,7 +18,13 @@ namespace Content.Shared._CE.ZLevels.Climbing;
 public sealed partial class CEZLevelClimbingSystem : EntitySystem
 {
 
-    [SubscribeLocalEvent]
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<CEZPhysicsComponent, PreventCollideEvent>(OnPreventCollide);
+    }
+
     private void OnPreventCollide(Entity<CEZPhysicsComponent> ent, ref PreventCollideEvent args)
     {
         if (ent.Comp.Disabled)
