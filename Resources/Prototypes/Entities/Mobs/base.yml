@@ -125,6 +125,7 @@
   abstract: true
   components:
   - type: Damageable
+  - type: Injurable
     damageContainer: Biological
   - type: Destructible
     thresholds:
@@ -318,13 +319,7 @@
   id: MobBloodstream
   abstract: true
   components:
-  - type: SolutionContainerManager
-    # Sunrise-Edit
-    solutions:
-      foots:
-        maxVol: 5
-      body_surface:
-        maxVol: 15
+  - type: SolutionManager
   - type: InjectableSolution
     solution: bloodstream
   - type: Bloodstream
