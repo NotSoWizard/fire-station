@@ -6,7 +6,7 @@ namespace Content.Shared.Weather;
 
 public abstract partial class SharedWeatherSystem
 {
-    [Dependency] private readonly CESharedZLevelsSystem _zLevels = default!;
+    [Dependency] private CESharedZLevelsSystem _zLevels = default!;
 
     private bool HasZLevelRoofAbove(Entity<MapGridComponent> grid, TileRef tile)
     {

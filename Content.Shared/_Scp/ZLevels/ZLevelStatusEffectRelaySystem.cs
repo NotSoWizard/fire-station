@@ -7,9 +7,9 @@ namespace Content.Shared._Scp.ZLevels;
 /// <summary>
 /// Allows status effects to modify falling damage and stun durations.
 /// </summary>
-public sealed class ZLevelStatusEffectRelaySystem : EntitySystem
+public sealed partial class ZLevelStatusEffectRelaySystem : EntitySystem
 {
-    [Dependency] private readonly StatusEffectsSystem _statusEffects = default!;
+    [Dependency] private StatusEffectsSystem _statusEffects = default!;
 
     public override void Initialize()
     {

@@ -7,9 +7,9 @@ namespace Content.Server._Scp.ZLevels;
 /// <summary>
 /// Keeps station maps aligned with the maps loaded above and below them.
 /// </summary>
-public sealed class ZLevelMapLoadSystem : EntitySystem
+public sealed partial class ZLevelMapLoadSystem : EntitySystem
 {
-    [Dependency] private readonly IComponentFactory _componentFactory = default!;
+    [Dependency] private IComponentFactory _componentFactory = default!;
 
     public override void Initialize()
     {
