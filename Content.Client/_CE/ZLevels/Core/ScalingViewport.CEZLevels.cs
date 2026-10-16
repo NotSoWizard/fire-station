@@ -112,25 +112,25 @@ public sealed partial class ScalingViewport
 
         if (_player.LocalEntity is null)
         {
-            viewport.Render();
+            RenderZLevelViewport(viewport); // Fire edit - проверяем, нужно ли рисовать размещение З-уровнем ниже.
             return;
         }
 
         if (!_entityManager.TryGetComponent<CEZLevelViewerComponent>(_player.LocalEntity.Value, out var zLevelViewer))
         {
-            viewport.Render();
+            RenderZLevelViewport(viewport); // Fire edit - проверяем, нужно ли рисовать размещение З-уровнем ниже.
             return;
         }
 
         if (!_xformQuery.Value.TryComp(_player.LocalEntity, out var playerXform))
         {
-            viewport.Render();
+            RenderZLevelViewport(viewport); // Fire edit - проверяем, нужно ли рисовать размещение З-уровнем ниже.
             return;
         }
 
         if (playerXform.MapUid is null)
         {
-            viewport.Render();
+            RenderZLevelViewport(viewport); // Fire edit - проверяем, нужно ли рисовать размещение З-уровнем ниже.
             return;
         }
 
@@ -185,7 +185,7 @@ public sealed partial class ScalingViewport
             }
 
             viewport.ClearColor = depth == lowestDepth ? Color.Black : null;
-            viewport.Render();
+            RenderZLevelViewport(viewport); // Fire edit - не рисуем размещение этажом ниже
         }
 
         // Restore the Eye
