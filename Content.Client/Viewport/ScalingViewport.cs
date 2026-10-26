@@ -154,7 +154,7 @@ namespace Content.Client.Viewport
 
             DebugTools.AssertNotNull(_viewport);
 
-            RenderZLevels(_viewport!); // CrystallEdge Process multi-Z rendering
+            RenderZLevels(_viewport!, handle); // Fire edit - передаём контекст для отдельного размытия верхнего этажа.
 
             //_viewport!.Render();
 

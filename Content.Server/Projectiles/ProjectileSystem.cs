@@ -47,6 +47,10 @@ public sealed partial class ProjectileSystem : SharedProjectileSystem
             return;
 
         var target = args.OtherEntity;
+        // Fire added start - снаряд за пределом межэтажной дальности удаляется без нанесения урона.
+        if (_zLevelProjectiles.TryExpireBeyondRange((uid, component), args.OurBody))
+            return;
+        // Fire added end
         // it's here so this check is only done once before possible hit
         var attemptEv = new ProjectileReflectAttemptEvent(uid, component, false);
         RaiseLocalEvent(target, ref attemptEv);

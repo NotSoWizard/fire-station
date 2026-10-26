@@ -94,7 +94,7 @@ public sealed partial class ScalingViewport
         return false;
     }
 
-    private void RenderZLevels(IClydeViewport viewport)
+    private void RenderZLevels(IClydeViewport viewport, IRenderHandle handle) // Fire edit - отдельно собираем изображение верхнего этажа.
     {
         if (_eye is null)
             return;
@@ -135,8 +135,10 @@ public sealed partial class ScalingViewport
         }
 
         var lookUp = 0;
+        // Fire edit start - взгляд вверх показывает только соседний этаж.
         if (zLevelViewer.LookUp)
-            lookUp = _zLevels.GetVisibleZLevelsAbove(_player.LocalEntity.Value, playerXform.MapUid);
+            lookUp = Math.Min(1, _zLevels.GetVisibleZLevelsAbove(_player.LocalEntity.Value, playerXform.MapUid));
+        // Fire edit end
 
         var lowestDepth = 0;
         for (var i = 0; i >= -CESharedZLevelsSystem.MaxZLevelsBelowRendering; i--)
@@ -185,7 +187,12 @@ public sealed partial class ScalingViewport
             }
 
             viewport.ClearColor = depth == lowestDepth ? Color.Black : null;
-            RenderZLevelViewport(viewport); // Fire edit - не рисуем размещение этажом ниже
+            // Fire edit start - размываем верхний этаж отдельно от текущего.
+            if (depth > 0)
+                RenderUpperZLevel(viewport, handle);
+            else
+                RenderZLevelViewport(viewport);
+            // Fire edit end
         }
 
         // Restore the Eye
