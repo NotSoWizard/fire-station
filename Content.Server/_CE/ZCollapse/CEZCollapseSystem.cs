@@ -684,7 +684,10 @@ public sealed partial class CEZCollapseSystem : EntitySystem
         }
 
         var item = Spawn(itemProto, _map.GridTileToLocal(belowGridUid, belowGrid, tile));
-        _zLevel.SetZPosition(item, 0.9f);
+        // Fire edit start - Дроп "технического" тайла может не иметь Z-физики
+        if (TryComp<CEZPhysicsComponent>(item, out var zPhysics))
+            _zLevel.SetZPosition((item, zPhysics), 0.9f);
+        // Fire edit end
 
         Transform(item).LocalRotation = _random.NextAngle();
         if (TryComp<PhysicsComponent>(item, out var physics))
