@@ -684,7 +684,7 @@ public sealed partial class CEZCollapseSystem : EntitySystem
         }
 
         var item = Spawn(itemProto, _map.GridTileToLocal(belowGridUid, belowGrid, tile));
-        // Fire edit start - Дроп "технического" тайла может не иметь Z-физики
+        // Fire edit start - у выпавшего предмета может не быть Z-физики; тогда высоту падения не задаём.
         if (TryComp<CEZPhysicsComponent>(item, out var zPhysics))
             _zLevel.SetZPosition((item, zPhysics), 0.9f);
         // Fire edit end

@@ -69,7 +69,7 @@ public sealed partial class GunSystem : SharedGunSystem
         }
 
         var fromMap = TransformSystem.ToMapCoordinates(fromCoordinates);
-        // Fire added start - повторно проверяем выбор этажа на сервере перед каждым выстрелом.
+        // Fire added start - проверяем этаж на сервере; недопустимую цель возвращаем на этаж стрелка.
         var zLevelTarget = ValidateZLevelAim(user, fromMap, TransformSystem.ToMapCoordinates(toCoordinates));
         var toMap = zLevelTarget.Position;
         // Fire added end
@@ -143,7 +143,7 @@ public sealed partial class GunSystem : SharedGunSystem
                     if (ent == null)
                         break;
 
-                    // Fire added start - лазер сохраняет исходный участок до перехода на соседний этаж.
+                    // Fire added start - сохраняем путь луча, чтобы проверить препятствия до и после проёма.
                     if (user is { } hitscanUser && _zLevelShooting.TryGetShotPlan(hitscanUser, fromMap,
                             new Robust.Shared.Map.MapCoordinates(toMap, zLevelTarget.MapId), out var zLevelPlan))
                     {
@@ -186,19 +186,19 @@ public sealed partial class GunSystem : SharedGunSystem
                 var angles = LinearSpread(mapAngle - spreadEvent.Spread / 2,
                     mapAngle + spreadEvent.Spread / 2, ammoSpreadComp.Count);
 
-                ShootOrThrow(ammoEnt, angles[0].ToVec(), gunVelocity, gun, gunUid, user, zLevelTarget); // Fire edit - передаём проверенный этаж.
+                ShootOrThrow(ammoEnt, angles[0].ToVec(), gunVelocity, gun, gunUid, user, zLevelTarget); // Fire edit - передаём проверенную цель для расчёта пути дробины между этажами.
                 shotProjectiles.Add(ammoEnt);
 
                 for (var i = 1; i < ammoSpreadComp.Count; i++)
                 {
                     var newuid = Spawn(ammoSpreadComp.Proto, fromEnt);
-                    ShootOrThrow(newuid, angles[i].ToVec(), gunVelocity, gun, gunUid, user, zLevelTarget); // Fire edit - передаём проверенный этаж.
+                    ShootOrThrow(newuid, angles[i].ToVec(), gunVelocity, gun, gunUid, user, zLevelTarget); // Fire edit - передаём проверенную цель для расчёта пути дробины между этажами.
                     shotProjectiles.Add(newuid);
                 }
             }
             else
             {
-                ShootOrThrow(ammoEnt, mapDirection, gunVelocity, gun, gunUid, user, zLevelTarget); // Fire edit - передаём проверенный этаж.
+                ShootOrThrow(ammoEnt, mapDirection, gunVelocity, gun, gunUid, user, zLevelTarget); // Fire edit - передаём проверенную цель для расчёта пути снаряда между этажами.
                 shotProjectiles.Add(ammoEnt);
             }
 
@@ -208,7 +208,7 @@ public sealed partial class GunSystem : SharedGunSystem
     }
 
     private void ShootOrThrow(EntityUid uid, Vector2 mapDirection, Vector2 gunVelocity, GunComponent gun, EntityUid gunUid, EntityUid? user,
-        MapCoordinates? zLevelTarget = null) // Fire edit - выбранный этаж не зависит от сохранённых координат оружия.
+        MapCoordinates? zLevelTarget = null) // Fire edit - передаём выбранный этаж явно, чтобы настроить переход снаряда между картами.
     {
         if (gun.Target is { } target && !TerminatingOrDeleted(target))
         {
@@ -227,7 +227,7 @@ public sealed partial class GunSystem : SharedGunSystem
         }
 
         ShootProjectile(uid, mapDirection, gunVelocity, gunUid, user, gun.ProjectileSpeedModified);
-        // Fire added start - каждая дробина проверяет переход с учётом собственного направления.
+        // Fire added start - каждой дробине рассчитываем переход по её скорости, чтобы учитывать разброс.
         if (user is { } shooter && zLevelTarget is { } validatedTarget)
         {
             _zLevelProjectiles.TryConfigure(uid, shooter, validatedTarget);

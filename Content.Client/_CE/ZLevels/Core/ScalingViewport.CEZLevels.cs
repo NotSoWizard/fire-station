@@ -94,7 +94,7 @@ public sealed partial class ScalingViewport
         return false;
     }
 
-    private void RenderZLevels(IClydeViewport viewport, IRenderHandle handle) // Fire edit - отдельно собираем изображение верхнего этажа.
+    private void RenderZLevels(IClydeViewport viewport, IRenderHandle handle) // Fire edit - контекст рисования нужен для наложения размытого верхнего этажа на остальную сцену.
     {
         if (_eye is null)
             return;
@@ -112,30 +112,30 @@ public sealed partial class ScalingViewport
 
         if (_player.LocalEntity is null)
         {
-            RenderZLevelViewport(viewport); // Fire edit - проверяем, нужно ли рисовать размещение З-уровнем ниже.
+            RenderZLevelViewport(viewport); // Fire edit - предпросмотр размещения виден только на своей карте, без копий на соседних этажах.
             return;
         }
 
         if (!_entityManager.TryGetComponent<CEZLevelViewerComponent>(_player.LocalEntity.Value, out var zLevelViewer))
         {
-            RenderZLevelViewport(viewport); // Fire edit - проверяем, нужно ли рисовать размещение З-уровнем ниже.
+            RenderZLevelViewport(viewport); // Fire edit - предпросмотр размещения виден только на своей карте, без копий на соседних этажах.
             return;
         }
 
         if (!_xformQuery.Value.TryComp(_player.LocalEntity, out var playerXform))
         {
-            RenderZLevelViewport(viewport); // Fire edit - проверяем, нужно ли рисовать размещение З-уровнем ниже.
+            RenderZLevelViewport(viewport); // Fire edit - предпросмотр размещения виден только на своей карте, без копий на соседних этажах.
             return;
         }
 
         if (playerXform.MapUid is null)
         {
-            RenderZLevelViewport(viewport); // Fire edit - проверяем, нужно ли рисовать размещение З-уровнем ниже.
+            RenderZLevelViewport(viewport); // Fire edit - предпросмотр размещения виден только на своей карте, без копий на соседних этажах.
             return;
         }
 
         var lookUp = 0;
-        // Fire edit start - взгляд вверх показывает только соседний этаж.
+        // Fire edit start - по действию взгляда вверх показываем только ближайший верхний этаж.
         if (zLevelViewer.LookUp)
             lookUp = Math.Min(1, _zLevels.GetVisibleZLevelsAbove(_player.LocalEntity.Value, playerXform.MapUid));
         // Fire edit end
@@ -177,7 +177,7 @@ public sealed partial class ScalingViewport
 
                 viewport.Eye = new ZEye(lowestDepth, depth, lookUp)
                 {
-                    SourceEye = _fallbackEye, // Fire added - сохраняем владельца эффектов поля зрения.
+                    SourceEye = _fallbackEye, // Fire added - сохраняем исходную камеру, чтобы её FOV и эффекты работали и на этом этаже.
                     Position = new MapCoordinates(_fallbackEye.Position.Position, mapComp.MapId),
                     DrawFov = _fallbackEye.DrawFov && depth >= 0,
                     DrawLight = _fallbackEye.DrawLight,
@@ -188,7 +188,7 @@ public sealed partial class ScalingViewport
             }
 
             viewport.ClearColor = depth == lowestDepth ? Color.Black : null;
-            // Fire edit start - размываем верхний этаж отдельно от текущего.
+            // Fire edit start - размываем верхний этаж до наложения, чтобы не размывать вместе с ним текущий.
             if (depth > 0)
                 RenderUpperZLevel(viewport, handle);
             else

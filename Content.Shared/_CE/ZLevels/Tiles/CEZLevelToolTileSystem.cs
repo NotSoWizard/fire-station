@@ -201,7 +201,7 @@ public sealed partial class CEZLevelToolTileSystem : EntitySystem
 
         var belowTile = _map.WorldToTile(belowGridUid, belowGrid, worldPos);
         var item = Spawn(itemProto, _map.GridTileToLocal(belowGridUid, belowGrid, belowTile));
-        // Fire edit start - Дроп "технического" тайла может не иметь Z-физики.
+        // Fire edit start - у выпавшей плитки может не быть Z-физики; задаём высоту только при наличии компонента.
         if (TryComp<CEZPhysicsComponent>(item, out var zPhysics))
             _zLevel.SetZPosition((item, zPhysics), 0.9f);
         // Fire edit end

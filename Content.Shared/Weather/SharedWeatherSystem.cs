@@ -36,7 +36,7 @@ public abstract partial class SharedWeatherSystem : EntitySystem
         if (Resolve(ent, ref ent.Comp2, false) && _roof.IsRooved((ent, ent.Comp1, ent.Comp2), tileRef.GridIndices))
             return false;
 
-        // Fire added start - крыша на верхнем Z-уровне защищает и пустые тайлы.
+        // Fire added start - пол на соседнем этаже сверху защищает от погоды даже пустую клетку под ним.
         if (HasZLevelRoofAbove((ent.Owner, ent.Comp1), tileRef))
             return false;
 
@@ -44,7 +44,7 @@ public abstract partial class SharedWeatherSystem : EntitySystem
             return true;
         // Fire added end
 
-        // Fire edit start - мерж ПРа из апстрима
+        // Fire edit start - сплошная крыша грида защищает от погоды все непустые клетки.
         if (HasComp<ImplicitRoofComponent>(ent))
             return false;
         // Fire edit end
