@@ -69,7 +69,8 @@ public sealed partial class ScalingViewport
                 Filter = StretchMode == ScalingViewportStretchMode.Bilinear,
             },
             name: "upper-z-level");
-        upperViewport.ClearColor = Color.Transparent;
+        // Color.Transparent содержит белый RGB, который проявляется в стекле и на границах размытия.
+        upperViewport.ClearColor = new Color(0f, 0f, 0f, 0f);
 
         return new UpperZLevelResources(upperViewport, _proto.Index(ZLevelBlurShader).InstanceUnique());
     }

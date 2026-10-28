@@ -177,6 +177,7 @@ public sealed partial class ScalingViewport
 
                 viewport.Eye = new ZEye(lowestDepth, depth, lookUp)
                 {
+                    SourceEye = _fallbackEye, // Fire added - сохраняем владельца эффектов поля зрения.
                     Position = new MapCoordinates(_fallbackEye.Position.Position, mapComp.MapId),
                     DrawFov = _fallbackEye.DrawFov && depth >= 0,
                     DrawLight = _fallbackEye.DrawLight,
