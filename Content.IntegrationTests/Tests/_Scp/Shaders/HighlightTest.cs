@@ -16,8 +16,6 @@ namespace Content.IntegrationTests.Tests._Scp.Shaders;
 [TestFixture]
 public sealed class HighlightTest
 {
-    private static readonly ProtoId<ShaderPrototype> UnshadedShader = "unshaded";
-
     [TestPrototypes]
     private const string Prototypes = """
         - type: entity
@@ -99,6 +97,7 @@ public sealed class HighlightTest
     [TestCase(true)]
     public async Task RemovingTheMarkerClearsOnlyItsOwnShader(bool anotherShader)
     {
+        ProtoId<ShaderPrototype> unshadedShader = "unshaded";
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
         var state = await GetServerHighlightState(pair);
         var client = pair.Client;
@@ -118,7 +117,7 @@ public sealed class HighlightTest
             if (anotherShader)
             {
                 client.EntMan.GetComponent<SpriteComponent>(target).PostShader =
-                    client.ProtoMan.Index(UnshadedShader).Instance();
+                    client.ProtoMan.Index(unshadedShader).Instance();
             }
 
             client.EntMan.RemoveComponent<HighlightedComponent>(target);
@@ -127,7 +126,7 @@ public sealed class HighlightTest
         {
             var shader = client.EntMan.GetComponent<SpriteComponent>(target).PostShader;
             if (anotherShader)
-                Assert.That(shader, Is.SameAs(client.ProtoMan.Index(UnshadedShader).Instance()));
+                Assert.That(shader, Is.SameAs(client.ProtoMan.Index(unshadedShader).Instance()));
             else
                 Assert.That(shader, Is.Null);
         });
